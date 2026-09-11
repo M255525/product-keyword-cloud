@@ -100,12 +100,16 @@
   .field-grid .full{grid-column:1/-1;}
   .field label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
   .field label .req{color:var(--bad);margin-left:2px;}
-  .field input[type=text],.field textarea,.field select{
+  .field input[type=text],.field input[type=password],.field textarea,.field select{
     width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--text);
     padding:9px 11px;font-size:14px;font-family:var(--font-sans);
   }
   .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);}
   .field textarea{resize:vertical;min-height:72px;}
+  .field .key-wrap{position:relative;}
+  .field .key-wrap input{padding-right:38px;}
+  .field .key-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:5px 7px;line-height:1;border-radius:6px;}
+  .field .key-toggle:hover{color:var(--accent);}
 
   .ai-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;}
   @media (max-width:720px){.ai-grid,.field-grid{grid-template-columns:1fr;}}
@@ -237,7 +241,10 @@
       </div>
       <div class="field">
         <label>API 金鑰</label>
-        <input type="text" id="aiKey" placeholder="貼上你自己的 API 金鑰" autocomplete="off">
+        <div class="key-wrap">
+          <input type="password" id="aiKey" placeholder="貼上你自己的 API 金鑰" autocomplete="off">
+          <button type="button" class="key-toggle" id="btnKeyToggle" title="顯示／隱藏金鑰" aria-label="顯示／隱藏金鑰">👁</button>
+        </div>
       </div>
     </div>
   </div>
@@ -425,6 +432,10 @@
     });
     $('aiModel').addEventListener('input', persistApiConfig);
     $('aiKey').addEventListener('input', persistApiConfig);
+    $('btnKeyToggle').addEventListener('click', function(){
+      var keyEl = $('aiKey');
+      keyEl.type = keyEl.type === 'password' ? 'text' : 'password';
+    });
   }
 
   async function callLLM(provider, model, apiKey, prompt, onRetry){
