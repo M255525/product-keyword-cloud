@@ -53,12 +53,11 @@ canvas 渲染驗證：`getImageData()` 抽樣比對背景色（`#123640`→`rgb(
 
 已推公開 GitHub repo `M255525/product-keyword-cloud`，用 `.github/workflows/deploy-pages.yml`（比照 `text-organizer-studio` 逐字複製）以 Actions workflow 部署 GitHub Pages（非 legacy branch-source，`gh api repos/M255525/product-keyword-cloud/pages -f build_type=workflow` 開啟），2026-09-11 已上線：<https://m255525.github.io/product-keyword-cloud/>（已用瀏覽器實測確認頁面正常渲染、`#licenseGate` 正確鎖定）。
 
-## 序號授權後端狀態（2026-09-11 更新）
+## 序號授權後端狀態（2026-09-11 更新，端對端驗證完成）
 
-一次性 OAuth 授權已由使用者完成：`doGet`/`doPost` 皆已用 `curl -sL`／Node `fetch()` 驗證回傳正確 JSON（非 Google 的「需要存取權」頁面），「文字雲」分頁已自動建立（含表頭）。用假序號測試 `doPost` 正確回傳 `{"valid":false,"reason":"serial_not_found"}`，證明表頭比對與分頁建立邏輯正常。**尚待**：使用者在「文字雲」分頁新增至少一組真實測試序號，才能驗證「有效序號解鎖＋剩餘天數顯示」這條路徑。
+一次性 OAuth 授權已由使用者完成：`doGet`/`doPost` 皆已用 `curl -sL`／Node `fetch()` 驗證回傳正確 JSON（非 Google 的「需要存取權」頁面）。「文字雲」分頁**是使用者直接複製既有「工作表1」產生**（非本工具自動 `insertSheet()` 建立），因此沿用了該分頁既有的表頭結構（`任務/優先順序/負責人/狀態/序號/開始日期/結束日期/交件/公司/附註`，比 `Code.gs` 預期的 3 欄多，但表頭文字比對邏輯不受影響）與既有 3 筆測試序號（`mark0131`／`xN5ap-aW5qLZ`／`x$6SzyoKLU3z`）。已用真實序號 `mark0131` 在正式上線網址 <https://m255525.github.io/product-keyword-cloud/> 端對端驗證整條解鎖流程：`doPost` 回傳 `valid:true`／`#licenseGate` 正確隱藏／頁首 `#licenseBadge` 正確顯示「🔑 剩餘 476 天」。序號授權功能已完整可用。
 
 ## 本次未做（後續視需要再處理）
 
 - 桌面版 exe 未打包。
-- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，目前卡在序號授權閘門需先有一組真實測試序號才能進入工具本體）。
-- 序號授權「有效序號」路徑尚未端對端驗證（見上）。
+- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，序號授權閘門已確認可正常解鎖，下一步是使用者用自己的金鑰跑一次真實生成）。
