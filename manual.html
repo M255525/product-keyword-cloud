@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>操作手冊｜跨境電商關鍵字文字雲產生器</title>
+<style>
+  *{box-sizing:border-box;}
+  :root{
+    --bg:#07161a;--bg2:#0a1f24;--panel:#0e2a30;--panel2:#123640;--line:#1e434d;
+    --text:#eaf6f5;--text-dim:#8fb5b0;--accent:#2dd4bf;--accent-dark:#14b8a6;
+    --font-sans:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+  }
+  html,body{margin:0;}
+  body{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--text);font-family:var(--font-sans);line-height:1.75;}
+  .wrap{max-width:820px;margin:0 auto;padding:40px 20px 60px;}
+  a{color:var(--accent);}
+  h1{font-size:26px;margin:0 0 6px;}
+  .sub{color:var(--text-dim);font-size:14px;margin:0 0 28px;}
+  h2{font-size:18px;margin:34px 0 12px;border-left:4px solid var(--accent);padding-left:10px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:16px 0;}
+  ol,ul{padding-left:22px;}
+  li{margin-bottom:8px;}
+  code{background:var(--panel2);padding:2px 6px;border-radius:5px;font-size:13px;}
+  .warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--text-dim);}
+  .warn strong{color:#fbbf24;}
+  .cat-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+  .cat-list .item{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;}
+  .cat-list .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;}
+  .back{display:inline-block;margin-top:30px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>操作手冊：跨境電商關鍵字文字雲產生器</h1>
+  <p class="sub">輸入商品名稱，AI 一鍵產出跨境電商關鍵字文字雲，可下載圖片與關鍵字清單</p>
+
+  <div class="warn">
+    <strong>⚠️ 本工具 100% 依賴 AI</strong>——沒有免費、可直接被瀏覽器呼叫的真實搜尋量資料庫，任何商品名稱也很難用固定詞庫規則產生有意義的關鍵字，因此本工具沒有「留空金鑰也能用」的規則式備援模式。所有關鍵字與熱度分數都是 AI 依訓練知識產生的<strong>主觀估計</strong>，並非任何真實搜尋引擎或電商平台的實際搜尋量數據，僅供行銷發想參考，請勿作為商業決策唯一依據。
+  </div>
+
+  <h2>1. 準備 API 金鑰</h2>
+  <div class="panel">
+    <p>本工具支援四家 AI 服務商，任選一家、自備金鑰即可：</p>
+    <ul>
+      <li><strong>Claude（Anthropic）</strong>——<a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a> 申請</li>
+      <li><strong>OpenAI</strong>——<a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> 申請</li>
+      <li><strong>Gemini（Google AI Studio）</strong>——<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a> 申請，通常有免費額度</li>
+      <li><strong>OpenRouter</strong>——<a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai</a> 申請，可用單一金鑰呼叫多家模型</li>
+    </ul>
+    <p>金鑰只會存在你自己瀏覽器的 <code>localStorage</code>，不會上傳到任何伺服器（本工具沒有後端）。</p>
+  </div>
+
+  <h2>2. 填寫商品資料並產生文字雲</h2>
+  <div class="panel">
+    <ol>
+      <li>在「商品資料」區塊填入<strong>商品名稱</strong>（必填），選填類別、目標受眾、賣點說明——可直接點選上方 5 組內建範例快速套用。</li>
+      <li>在「API 連線設定」選好服務商、填入模型名稱與金鑰。</li>
+      <li>點擊「✨ 產生關鍵字文字雲」，AI 會回傳 40 組關鍵字並自動畫成文字雲，通常需要數十秒，若遇到服務商暫時過載會自動重試。</li>
+      <li>畫面上方可用「中英對照／純英文／純中文」切換顯示語言，不需要重新呼叫 AI。</li>
+    </ol>
+  </div>
+
+  <h2>3. 看懂文字雲</h2>
+  <div class="panel">
+    <p>文字雲用「大小」代表 AI 估計的相關度／熱度，用「顏色」代表關鍵字類型：</p>
+    <div class="cat-list">
+      <div class="item"><span class="dot" style="background:#2dd4bf"></span><strong>短尾核心詞</strong>——1-2個字的高搜尋量主詞</div>
+      <div class="item"><span class="dot" style="background:#60a5fa"></span><strong>長尾詞</strong>——3個字以上具體描述，轉換率通常較高</div>
+      <div class="item"><span class="dot" style="background:#fbbf24"></span><strong>場景詞</strong>——依使用情境/場合描述</div>
+      <div class="item"><span class="dot" style="background:#fb7185"></span><strong>痛點詞</strong>——描述要解決的問題/困擾</div>
+    </div>
+    <p>下方也會列出同一組資料的表格，方便逐筆檢視「說明」欄（AI 給的理由）。</p>
+  </div>
+
+  <h2>4. 匯出結果</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>下載 PNG 圖片</strong>——把文字雲存成圖片，方便放進簡報或提案。</li>
+      <li><strong>下載 CSV</strong>——含關鍵字（中英）、熱度、分類、說明，方便用 Excel 進一步整理。</li>
+      <li><strong>下載 TXT 清單</strong>——一行一個關鍵字，依目前顯示語言輸出，方便直接貼到 Amazon 後台「Search Terms」欄位。</li>
+      <li><strong>複製關鍵字清單</strong>——直接複製到剪貼簿。</li>
+    </ul>
+  </div>
+
+  <h2>常見問題</h2>
+  <div class="panel">
+    <p><strong>Q：為什麼按了「產生」沒反應／出現紅字？</strong><br>多半是還沒填 API 金鑰，或金鑰/模型名稱有誤。請確認「API 連線設定」都已正確填寫。</p>
+    <p><strong>Q：熱度分數可以當作真實搜尋量嗎？</strong><br>不行。這是 AI 依訓練知識做的主觀估計，僅供行銷發想參考，實際投放前建議再搭配平台自身的關鍵字工具驗證。</p>
+    <p><strong>Q：資料會不會被上傳保存？</strong><br>不會。本工具沒有後端伺服器，商品資料、API 金鑰與產生結果都只存在你瀏覽器的 localStorage。</p>
+  </div>
+
+  <a class="back" href="index.html">← 返回工具主頁</a>
+</div>
+</body>
+</html>

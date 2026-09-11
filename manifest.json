@@ -1,0 +1,16 @@
+{
+  "name": "跨境電商關鍵字文字雲產生器",
+  "short_name": "關鍵字文字雲",
+  "description": "輸入商品名稱，AI 一鍵產出跨境電商關鍵字文字雲，可下載圖片與關鍵字清單",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07161a",
+  "theme_color": "#0e2a30",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

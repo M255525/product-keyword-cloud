@@ -1,0 +1,10 @@
+# 執行期/打包產物（可重建，不進版控）
+*.exe
+__pycache__/
+*.pyc
+_check.js
+
+# Playwright 測試截圖/紀錄
+.playwright-mcp/
+.DS_Store
+Thumbs.db

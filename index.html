@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>跨境電商關鍵字文字雲產生器</title>
+<meta name="description" content="輸入商品名稱，AI 一鍵產出跨境電商關鍵字文字雲，可下載圖片與關鍵字清單">
+<meta name="theme-color" content="#0e2a30">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="關鍵字文字雲">
+<style>
+  *{box-sizing:border-box;}
+  :root{
+    --bg:#07161a;
+    --bg2:#0a1f24;
+    --panel:#0e2a30;
+    --panel2:#123640;
+    --line:#1e434d;
+    --text:#eaf6f5;
+    --text-dim:#8fb5b0;
+    --accent:#2dd4bf;
+    --accent-dark:#14b8a6;
+    --accent-soft:rgba(45,212,191,.14);
+    --ok:#34d399;
+    --bad:#fb7185;
+    --warn:#fbbf24;
+    --font-sans:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+    --cat-core:#2dd4bf;
+    --cat-longtail:#60a5fa;
+    --cat-scenario:#fbbf24;
+    --cat-painpoint:#fb7185;
+  }
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 1px 1px, rgba(45,212,191,.09) 1px, transparent 0) 0 0/22px 22px,
+      linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+    color:var(--text);font-family:var(--font-sans);line-height:1.65;min-height:100vh;
+  }
+  a{color:var(--accent);}
+  button{font-family:inherit;}
+  .hidden{display:none !important;}
+
+  #marqueeBar{position:fixed;top:0;left:0;right:0;height:30px;background:var(--panel);border-bottom:1px solid var(--line);z-index:2100;overflow:hidden;display:none;align-items:center}
+  #marqueeBar.show{display:flex}
+  #marqueeTrack{white-space:nowrap;display:inline-block;padding-left:100%;animation:marquee-scroll 30s linear infinite;font-size:13px;color:var(--text-dim);}
+  @keyframes marquee-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  body.has-marquee .topbar{top:30px;}
+  body.has-marquee{padding-top:30px;}
+
+  .topbar{position:sticky;top:0;z-index:1200;background:rgba(7,22,26,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);}
+  .topbar-inner{max-width:1040px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;}
+  .brand .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;color:#052421;font-weight:800;}
+  .topbar nav{display:flex;gap:16px;font-size:14px;}
+  .topbar nav a{color:var(--text-dim);text-decoration:none;}
+  .topbar nav a:hover{color:var(--accent);}
+
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px 60px;}
+  .hero{padding:38px 0 20px;}
+  .eyebrow{font-size:13px;letter-spacing:.06em;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:10px;}
+  .hero h1{font-size:clamp(24px,4vw,34px);margin:0 0 12px;line-height:1.35;}
+  .hero h1 .accent{color:var(--accent);}
+  .hero .lead{color:var(--text-dim);font-size:15px;max-width:720px;margin:0;}
+  .hero .lead strong{color:var(--text);}
+
+  .mandatory-key-box{margin:18px 0 0;padding:12px 16px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);border-radius:10px;font-size:13.5px;color:var(--text-dim);}
+  .mandatory-key-box strong{color:var(--warn);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-top:20px;}
+  .panel h2{font-size:16px;margin:0 0 16px;display:flex;align-items:center;gap:8px;}
+  .panel h2 .num{width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
+
+  .preset-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .preset-btn{background:var(--panel2);border:1px solid var(--line);color:var(--text-dim);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;transition:.15s;}
+  .preset-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field-grid .full{grid-column:1/-1;}
+  .field label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
+  .field label .req{color:var(--bad);margin-left:2px;}
+  .field input[type=text],.field textarea,.field select{
+    width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--text);
+    padding:9px 11px;font-size:14px;font-family:var(--font-sans);
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);}
+  .field textarea{resize:vertical;min-height:72px;}
+
+  .ai-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;}
+  @media (max-width:720px){.ai-grid,.field-grid{grid-template-columns:1fr;}}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:9px;padding:11px 20px;font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#052421;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;filter:none;}
+  .btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-ghost:disabled{opacity:.45;cursor:not-allowed;}
+
+  .action-row{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap;}
+
+  .report-box{margin-top:14px;font-size:13.5px;}
+  .report-box .ok{color:var(--ok);}
+  .report-box .bad{color:var(--bad);}
+  .report-box .info{color:var(--text-dim);}
+
+  .result-section{margin-top:20px;}
+  .summary-box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--text-dim);margin-bottom:16px;}
+  .summary-box strong{color:var(--text);}
+
+  .lang-toggle{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;}
+  .lang-toggle button{border:none;background:transparent;color:var(--text-dim);font-size:13px;padding:6px 14px;border-radius:999px;cursor:pointer;}
+  .lang-toggle button.active{background:var(--accent);color:#052421;font-weight:700;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;font-size:13px;color:var(--text-dim);}
+  .legend .item{display:flex;align-items:center;gap:6px;}
+  .legend .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+  .wc-wrap{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;justify-content:center;overflow-x:auto;}
+  #wcCanvas{max-width:100%;height:auto;border-radius:8px;}
+  .wc-empty{padding:60px 20px;text-align:center;color:var(--text-dim);font-size:14px;}
+
+  .export-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+
+  .table-wrap{overflow-x:auto;margin-top:18px;}
+  table.kw-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px;}
+  table.kw-table th,table.kw-table td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;}
+  table.kw-table th{color:var(--text-dim);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
+  table.kw-table td.reason{color:var(--text-dim);font-size:12.5px;}
+  .cat-badge{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;}
+  .weight-bar{display:inline-block;width:60px;height:6px;background:var(--line);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px;}
+  .weight-bar span{display:block;height:100%;background:var(--accent);}
+
+  .empty-hint{color:var(--text-dim);font-size:13.5px;}
+
+  footer{max-width:1040px;margin:40px auto 0;padding:24px 20px 40px;border-top:1px solid var(--line);}
+  footer .warn-list{font-size:12.5px;color:var(--text-dim);line-height:1.8;padding-left:18px;margin:0 0 16px;}
+  footer .footer-meta{font-size:12.5px;color:var(--text-dim);display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+  .footer-link-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:12.5px;padding:0;}
+  .footer-link-btn:hover{color:var(--accent);}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:10px 18px;border-radius:10px;font-size:13.5px;opacity:0;pointer-events:none;transition:.2s;z-index:3000;}
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<div id="marqueeBar"><div id="marqueeTrack"></div></div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="mark">雲</span>跨境電商關鍵字文字雲</div>
+    <nav>
+      <a href="manual.html">操作手冊</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">AI 關鍵字發想 · 文字雲視覺化</div>
+    <h1>輸入商品名稱，<span class="accent">讓 AI 幫你發想一整片關鍵字</span></h1>
+    <p class="lead">依商品名稱、類別、受眾與賣點，AI 會估算出一組適合用於商品標題、後台搜尋詞（Search Terms）與行銷素材的關鍵字，並依相關度／預估熱度畫成文字雲，可下載圖片與清單。<strong>本工具 100% 依賴 AI 估算，沒有免金鑰的離線模式。</strong></p>
+    <div class="mandatory-key-box">
+      <strong>⚠️ 需要 API 金鑰才能使用</strong> — 任意商品名稱很難用固定詞庫規則產生有意義的關鍵字，本工具沒有規則式離線備援，請在下方「API 連線設定」填入你自己的 Claude／OpenAI／Gemini／OpenRouter 金鑰。金鑰只存在你的瀏覽器，不會經過任何伺服器。
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="num">1</span>商品資料</h2>
+    <div class="preset-row" id="presetRow"></div>
+    <div class="field-grid">
+      <div class="field full">
+        <label>商品名稱 <span class="req">*</span></label>
+        <input type="text" id="f_productName" placeholder="例如：可攜式USB充電露營燈">
+      </div>
+      <div class="field">
+        <label>商品類別（選填）</label>
+        <input type="text" id="f_category" placeholder="例如：戶外露營用品">
+      </div>
+      <div class="field">
+        <label>目標受眾（選填）</label>
+        <input type="text" id="f_targetAudience" placeholder="例如：露營新手、假日露營家庭">
+      </div>
+      <div class="field full">
+        <label>賣點／特色說明（選填，可換行列點）</label>
+        <textarea id="f_sellingPoints" placeholder="例如：&#10;IPX6防水&#10;磁吸底座可吸附車頂或鐵架&#10;三段亮度＋SOS閃爍模式"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="num">2</span>API 連線設定</h2>
+    <div class="ai-grid">
+      <div class="field">
+        <label>AI 服務商</label>
+        <select id="aiProvider"></select>
+      </div>
+      <div class="field">
+        <label>模型名稱</label>
+        <input type="text" id="aiModel">
+      </div>
+      <div class="field">
+        <label>API 金鑰</label>
+        <input type="text" id="aiKey" placeholder="貼上你自己的 API 金鑰" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="num">3</span>產生文字雲</h2>
+    <div class="action-row">
+      <button type="button" class="btn btn-primary" id="generateBtn">✨ 產生關鍵字文字雲</button>
+      <div class="lang-toggle" id="langToggle">
+        <button type="button" data-lang="both" class="active">中英對照</button>
+        <button type="button" data-lang="en">純英文</button>
+        <button type="button" data-lang="zh">純中文</button>
+      </div>
+    </div>
+    <div class="report-box" id="genReport"></div>
+
+    <div class="result-section" id="resultSection">
+      <div class="summary-box hidden" id="summaryBox"></div>
+
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:var(--cat-core)"></span>短尾核心詞</div>
+        <div class="item"><span class="dot" style="background:var(--cat-longtail)"></span>長尾詞</div>
+        <div class="item"><span class="dot" style="background:var(--cat-scenario)"></span>場景詞</div>
+        <div class="item"><span class="dot" style="background:var(--cat-painpoint)"></span>痛點詞</div>
+      </div>
+
+      <div class="wc-wrap" id="wcWrap">
+        <div class="wc-empty" id="wcEmpty">尚未產生關鍵字文字雲，請先在上方填寫商品名稱並點擊「產生關鍵字文字雲」。</div>
+        <canvas id="wcCanvas" class="hidden" width="900" height="540"></canvas>
+      </div>
+
+      <div class="export-row hidden" id="exportRow">
+        <button type="button" class="btn btn-ghost" id="downloadPngBtn">🖼 下載 PNG 圖片</button>
+        <button type="button" class="btn btn-ghost" id="downloadCsvBtn">📄 下載 CSV</button>
+        <button type="button" class="btn btn-ghost" id="downloadTxtBtn">📝 下載 TXT 清單</button>
+        <button type="button" class="btn btn-ghost" id="copyListBtn">📋 複製關鍵字清單</button>
+      </div>
+
+      <div class="table-wrap" id="tableWrap"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <ul class="warn-list">
+    <li>本工具無任何離線／免金鑰模式：所有關鍵字皆需連線到你自己選擇的 AI 服務商，金鑰只存在你的瀏覽器 localStorage，本工具不會經手或保存。</li>
+    <li>文字雲的字體大小、熱度分數皆為 AI 依訓練知識產生的主觀估計，不是任何官方或第三方搜尋引擎的真實搜尋量數據，不保證準確或即時，僅供行銷發想參考，請勿作為商業決策唯一依據。</li>
+    <li>請勿輸入真實個資、機密資料或受著作權保護的他人內容。</li>
+    <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
+  </ul>
+  <div class="footer-meta">
+    <span>製作：Mark Tsai｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></span>
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.product-keyword-cloud" alt="訪客次數" style="vertical-align:middle;height:20px;">
+    <button type="button" id="installBtn" class="footer-link-btn">📲 加入主畫面</button>
+    <a href="manual.html">操作手冊 →</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  function $(id){ return document.getElementById(id); }
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function notify(msg){
+    var t = $('toast');
+    if(!t){ window.alert(msg); return; }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(notify._timer);
+    notify._timer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  /* ---------- 分類色票 ---------- */
+  var CATEGORY_META = {
+    core:      {label:'短尾核心詞', color:'#2dd4bf'},
+    longtail:  {label:'長尾詞',     color:'#60a5fa'},
+    scenario:  {label:'場景詞',     color:'#fbbf24'},
+    painpoint: {label:'痛點詞',     color:'#fb7185'}
+  };
+
+  /* ---------- 狀態 ---------- */
+  var STATE_KEY = 'pkcState';
+  var STATE = loadState();
+  function defaultState(){
+    return {
+      fields: {productName:'', category:'', targetAudience:'', sellingPoints:''},
+      displayLang: 'both',
+      keywords: [],
+      summary: '',
+      generatedAt: null
+    };
+  }
+  function loadState(){
+    try{
+      var s = JSON.parse(localStorage.getItem(STATE_KEY));
+      if(!s || typeof s !== 'object') return defaultState();
+      var d = defaultState();
+      d.fields = Object.assign(d.fields, s.fields || {});
+      d.displayLang = s.displayLang || 'both';
+      d.keywords = Array.isArray(s.keywords) ? s.keywords : [];
+      d.summary = s.summary || '';
+      d.generatedAt = s.generatedAt || null;
+      return d;
+    }catch(e){ return defaultState(); }
+  }
+  function persistState(){
+    try{ localStorage.setItem(STATE_KEY, JSON.stringify(STATE)); }catch(e){}
+  }
+
+  /* ---------- 內建範例 ---------- */
+  var PRESETS = [
+    {label:'戶外露營燈', fields:{productName:'可攜式USB充電露營燈', category:'戶外露營用品', targetAudience:'露營新手、假日露營家庭', sellingPoints:'IPX6防水\n磁吸底座可吸附車頂或鐵架\n三段亮度＋SOS閃爍模式\n10000mAh行動電源可反向充手機'}},
+    {label:'降噪藍牙耳機', fields:{productName:'降噪真無線藍牙耳機', category:'3C配件／音訊周邊', targetAudience:'通勤族、居家辦公族', sellingPoints:'主動降噪ANC\n單次續航8小時、含充電盒32小時\nIPX4防汗防水\n觸控操作支援語音助理'}},
+    {label:'寵物自動餵食器', fields:{productName:'WiFi智慧寵物自動餵食器', category:'寵物用品', targetAudience:'雙薪家庭貓狗飼主', sellingPoints:'App遠端定時定量\n語音錄製呼喚寵物\n食物新鮮密封艙\n停電記憶功能'}},
+    {label:'廚房清潔劑', fields:{productName:'天然酵素廚房重油污清潔劑', category:'居家清潔用品', targetAudience:'注重天然成分的家庭主婦/夫', sellingPoints:'植物酵素配方\n無磷無螢光劑\n可分解油網抽油煙機頑垢\n噴頭霧化設計省力好噴灑'}},
+    {label:'保濕精華液', fields:{productName:'玻尿酸保濕精華液', category:'美妝保養／臉部保養', targetAudience:'25-40歲關注保濕抗老的女性', sellingPoints:'三重分子玻尿酸\n添加維他命B5舒緩\n清爽不黏膩快速吸收\n敏感肌可用、無酒精無香料'}}
+  ];
+  function renderPresets(){
+    $('presetRow').innerHTML = PRESETS.map(function(p, i){
+      return '<button type="button" class="preset-btn" data-idx="' + i + '">' + escapeHtml(p.label) + '</button>';
+    }).join('');
+    $('presetRow').querySelectorAll('.preset-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var p = PRESETS[parseInt(btn.getAttribute('data-idx'), 10)];
+        STATE.fields = Object.assign({}, p.fields);
+        renderFieldsFromState();
+        persistState();
+      });
+    });
+  }
+
+  function renderFieldsFromState(){
+    $('f_productName').value = STATE.fields.productName || '';
+    $('f_category').value = STATE.fields.category || '';
+    $('f_targetAudience').value = STATE.fields.targetAudience || '';
+    $('f_sellingPoints').value = STATE.fields.sellingPoints || '';
+  }
+  function bindFieldInputs(){
+    ['f_productName','f_category','f_targetAudience','f_sellingPoints'].forEach(function(id){
+      $(id).addEventListener('input', function(){
+        var key = id.replace('f_', '');
+        STATE.fields[key] = $(id).value;
+        persistState();
+      });
+    });
+  }
+
+  /* ---------- BYOK：Claude／OpenAI／Gemini／OpenRouter，金鑰只存本機瀏覽器 ---------- */
+  var AI_PROVIDERS = {
+    claude:     {label:'Claude（Anthropic）',       defaultModel:'claude-opus-4-8'},
+    openai:     {label:'OpenAI',                    defaultModel:'gpt-4o-mini'},
+    gemini:     {label:'Gemini（Google AI Studio）', defaultModel:'gemini-3.5-flash'},
+    openrouter: {label:'OpenRouter',                defaultModel:'openai/gpt-4o-mini'}
+  };
+  var API_STORAGE_KEY = 'pkcApiConfig';
+
+  function loadApiConfig(){ try{ return JSON.parse(localStorage.getItem(API_STORAGE_KEY)) || {}; }catch(e){ return {}; } }
+  function persistApiConfig(){
+    try{
+      localStorage.setItem(API_STORAGE_KEY, JSON.stringify({
+        provider: $('aiProvider').value, model: $('aiModel').value.trim(), apiKey: $('aiKey').value.trim()
+      }));
+    }catch(e){}
+  }
+  function initAiPanel(){
+    var sel = $('aiProvider');
+    sel.innerHTML = Object.keys(AI_PROVIDERS).map(function(k){ return '<option value="' + k + '">' + AI_PROVIDERS[k].label + '</option>'; }).join('');
+    var cfg = loadApiConfig();
+    sel.value = (cfg.provider && AI_PROVIDERS[cfg.provider]) ? cfg.provider : 'claude';
+    $('aiModel').value = cfg.model || AI_PROVIDERS[sel.value].defaultModel;
+    $('aiKey').value = cfg.apiKey || '';
+    sel.addEventListener('change', function(){
+      var modelEl = $('aiModel');
+      var isDefault = Object.keys(AI_PROVIDERS).some(function(k){ return AI_PROVIDERS[k].defaultModel === modelEl.value.trim(); });
+      if(!modelEl.value.trim() || isDefault) modelEl.value = AI_PROVIDERS[sel.value].defaultModel;
+      persistApiConfig();
+    });
+    $('aiModel').addEventListener('input', persistApiConfig);
+    $('aiKey').addEventListener('input', persistApiConfig);
+  }
+
+  async function callLLM(provider, model, apiKey, prompt, onRetry){
+    var url, headers, body, extract;
+
+    if(provider === 'claude'){
+      url = 'https://api.anthropic.com/v1/messages';
+      headers = {'content-type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'};
+      body = {model: model, max_tokens: 4000, messages: [{role:'user', content: prompt}]};
+      extract = function(d){
+        if(d.stop_reason === 'refusal') throw new Error('模型拒絕了這個請求（refusal）');
+        var t = (d.content || []).filter(function(b){ return b.type === 'text'; }).map(function(b){ return b.text; }).join('');
+        if(!t) throw new Error('回應中沒有文字內容');
+        return t;
+      };
+    } else if(provider === 'openai' || provider === 'openrouter'){
+      url = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
+      headers = {'content-type':'application/json', 'authorization':'Bearer ' + apiKey};
+      body = {model: model, messages: [{role:'user', content: prompt}]};
+      extract = function(d){
+        var t = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+        if(!t) throw new Error('回應中沒有文字內容');
+        return t;
+      };
+    } else if(provider === 'gemini'){
+      url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+      headers = {'content-type':'application/json', 'x-goog-api-key':apiKey};
+      body = {contents: [{parts: [{text:prompt}]}]};
+      extract = function(d){
+        var ps = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
+        var t = ps.map(function(p){ return p.text || ''; }).join('');
+        if(!t) throw new Error('回應中沒有文字內容');
+        return t;
+      };
+    } else {
+      throw new Error('不支援的服務商');
+    }
+
+    var RETRYABLE = {429:1, 500:1, 503:1, 529:1};
+    var MAX_TRIES = 3;
+    for(var attempt = 1; attempt <= MAX_TRIES; attempt++){
+      var resp = await fetch(url, {method:'POST', headers:headers, body:JSON.stringify(body), signal:AbortSignal.timeout(180000)});
+      var raw = await resp.text();
+      if(resp.ok) return extract(JSON.parse(raw));
+      var msg = raw.slice(0, 300);
+      try{ var err = JSON.parse(raw); msg = (err.error && err.error.message) || err.message || msg; }catch(e){}
+      if(RETRYABLE[resp.status] && attempt < MAX_TRIES){
+        var waitSec = attempt * 8;
+        if(onRetry) onRetry(attempt, resp.status, waitSec);
+        await new Promise(function(r){ setTimeout(r, waitSec * 1000); });
+        continue;
+      }
+      if(resp.status === 404) msg += '——這通常表示模型名稱錯誤或已停用，請到該服務商的模型列表確認目前可用的模型 ID';
+      if(RETRYABLE[resp.status]) msg += '——已自動重試 ' + (MAX_TRIES - 1) + ' 次仍失敗，多為服務商暫時過載，請稍候幾分鐘再試，或更換模型／服務商';
+      throw new Error('API 回應 ' + resp.status + '：' + msg);
+    }
+  }
+
+  function isLatin1(s){ return /^[\x00-\xFF]*$/.test(s); }
+  function getAiCreds(){
+    return {provider: $('aiProvider').value, model: $('aiModel').value.trim(), apiKey: $('aiKey').value.trim()};
+  }
+  function validateAiCreds(creds, reportEl){
+    if(!creds.apiKey){ reportEl.innerHTML = '<div class="bad">請先在上方「API 連線設定」填入 API 金鑰——本工具 100% 依賴 AI，沒有金鑰無法使用</div>'; return false; }
+    if(!creds.model){ reportEl.innerHTML = '<div class="bad">請填入模型名稱</div>'; return false; }
+    if(!isLatin1(creds.apiKey) || !isLatin1(creds.model)){ reportEl.innerHTML = '<div class="bad">API 金鑰或模型名稱包含不可用的字元，請確認「API 連線設定」內容</div>'; return false; }
+    return true;
+  }
+  function extractJsonObject(raw){
+    var cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    try{ return JSON.parse(cleaned); }catch(e){}
+    var m = cleaned.match(/\{[\s\S]*\}/);
+    if(m){ return JSON.parse(m[0]); }
+    throw new Error('AI 回應不是有效的 JSON 格式');
+  }
+
+  /* ---------- Prompt ---------- */
+  function buildKeywordPrompt(fields){
+    var lines = [];
+    lines.push('你是一位跨境電商（Amazon／Alibaba／Etsy 等平台）的關鍵字研究顧問。請針對以下商品，發想一組適合用於商品標題、後台搜尋詞（Search Terms）與行銷素材的關鍵字。');
+    lines.push('');
+    lines.push('商品名稱：' + fields.productName);
+    if(fields.category) lines.push('商品類別：' + fields.category);
+    if(fields.targetAudience) lines.push('目標受眾：' + fields.targetAudience);
+    if(fields.sellingPoints) lines.push('賣點／特色說明：\n' + fields.sellingPoints);
+    lines.push('');
+    lines.push('請產生恰好 40 組關鍵字，每組須包含以下欄位：');
+    lines.push('- keyword：英文關鍵字（適合國際電商平台使用的自然用語，不要逐字直譯）');
+    lines.push('- keyword_zh：對應的繁體中文關鍵字（自然的中文說法，不要逐字翻譯）');
+    lines.push('- weight：1-100 的整數，代表你主觀估計的「相關度／預估搜尋熱度」');
+    lines.push('- category：以下四選一——');
+    lines.push('  core：短尾核心詞（1-2個字的高搜尋量主詞）');
+    lines.push('  longtail：長尾詞（3個字以上的具體描述，通常轉換率較高）');
+    lines.push('  scenario：場景詞（依使用情境/場合描述）');
+    lines.push('  painpoint：痛點詞（描述要解決的問題/困擾）');
+    lines.push('- reason：一句話說明這個關鍵字為什麼重要（繁體中文，10-25字）');
+    lines.push('');
+    lines.push('重要限制：weight 是你依訓練知識做的主觀估計，並非任何真實搜尋引擎或電商平台的實際搜尋量數據，請不要假裝有精確數字；但仍請讓相對高低盡量符合你對該品類實際搜尋熱度的認知（例如品類共通的大詞應明顯高於冷門長尾詞），40組之間 weight 需要有明顯層次，不要全部集中在同一區間。');
+    lines.push('');
+    lines.push('另外請給一段 60-120 字的繁體中文 summary，說明這組關鍵字的整體佈局建議（例如短尾詞、長尾詞、場景詞、痛點詞各該用在哪裡）。');
+    lines.push('');
+    lines.push('請只回傳以下 JSON 格式，不要有任何其他文字、說明或 markdown 標記：');
+    lines.push('{"keywords":[{"keyword":"...","keyword_zh":"...","weight":85,"category":"core","reason":"..."}],"summary":"..."}');
+    return lines.join('\n');
+  }
+
+  function validateAiKeywords(data){
+    if(!data || !Array.isArray(data.keywords)) throw new Error('AI 回應格式不正確，缺少 keywords 陣列');
+    var validCats = {core:1, longtail:1, scenario:1, painpoint:1};
+    var out = [];
+    var skipped = 0;
+    data.keywords.forEach(function(k){
+      if(!k || typeof k.keyword !== 'string' || !k.keyword.trim()){ skipped++; return; }
+      var w = Number(k.weight);
+      if(!isFinite(w)){ skipped++; return; }
+      w = Math.max(1, Math.min(100, Math.round(w)));
+      var cat = validCats[k.category] ? k.category : 'core';
+      out.push({
+        keyword: k.keyword.trim(),
+        keyword_zh: (typeof k.keyword_zh === 'string') ? k.keyword_zh.trim() : '',
+        weight: w,
+        category: cat,
+        reason: (typeof k.reason === 'string') ? k.reason.trim() : ''
+      });
+    });
+    if(!out.length) throw new Error('AI 回應沒有任何可用的關鍵字');
+    return {keywords: out, summary: (typeof data.summary === 'string') ? data.summary.trim() : '', skipped: skipped};
+  }
+
+  /* ---------- 顯示文字（依語言切換，不需重新呼叫 AI） ---------- */
+  function displayText(k){
+    if(STATE.displayLang === 'en') return k.keyword;
+    if(STATE.displayLang === 'zh') return k.keyword_zh || k.keyword;
+    return k.keyword + (k.keyword_zh ? ' ' + k.keyword_zh : '');
+  }
+
+  /* ---------- 產生 ---------- */
+  $('generateBtn').addEventListener('click', async function(){
+    var btn = this;
+    var reportEl = $('genReport');
+    var productName = $('f_productName').value.trim();
+    if(!productName){
+      reportEl.innerHTML = '<div class="bad">請先填寫商品名稱</div>';
+      $('f_productName').focus();
+      return;
+    }
+    var creds = getAiCreds();
+    if(!validateAiCreds(creds, reportEl)) return;
+
+    STATE.fields.productName = productName;
+    STATE.fields.category = $('f_category').value.trim();
+    STATE.fields.targetAudience = $('f_targetAudience').value.trim();
+    STATE.fields.sellingPoints = $('f_sellingPoints').value.trim();
+    persistState();
+
+    btn.disabled = true;
+    var origText = btn.textContent;
+    btn.textContent = '⏳ AI 產生中…';
+    reportEl.innerHTML = '<div class="info">正在請求 AI 產生關鍵字，可能需要數十秒…</div>';
+
+    try{
+      var prompt = buildKeywordPrompt(STATE.fields);
+      var raw = await callLLM(creds.provider, creds.model, creds.apiKey, prompt, function(attempt, status, waitSec){
+        reportEl.innerHTML = '<div class="info">第 ' + attempt + ' 次請求失敗（狀態碼 ' + status + '），' + waitSec + ' 秒後自動重試…</div>';
+      });
+      var data = extractJsonObject(raw);
+      var result = validateAiKeywords(data);
+      STATE.keywords = result.keywords;
+      STATE.summary = result.summary;
+      STATE.generatedAt = Date.now();
+      persistState();
+      renderResult();
+      var skipNote = result.skipped ? '（已略過 ' + result.skipped + ' 筆格式異常的關鍵字）' : '';
+      reportEl.innerHTML = '<div class="ok">✅ 已產生 ' + STATE.keywords.length + ' 組關鍵字' + skipNote + '</div>';
+    }catch(err){
+      reportEl.innerHTML = '<div class="bad">❌ 產生失敗：' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  });
+
+  /* ---------- 語言切換 ---------- */
+  $('langToggle').querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click', function(){
+      $('langToggle').querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      STATE.displayLang = b.getAttribute('data-lang');
+      persistState();
+      if(STATE.keywords.length){ renderWordCloud(); renderKeywordTable(); }
+    });
+  });
+
+  /* ---------- 渲染結果 ---------- */
+  function renderResult(){
+    if(!STATE.keywords.length) return;
+    $('langToggle').querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === STATE.displayLang);
+    });
+    if(STATE.summary){
+      $('summaryBox').innerHTML = '<strong>AI 關鍵字策略建議：</strong>' + escapeHtml(STATE.summary);
+      $('summaryBox').classList.remove('hidden');
+    }
+    $('exportRow').classList.remove('hidden');
+    renderWordCloud();
+    renderKeywordTable();
+  }
+
+  function sortedKeywords(){
+    return STATE.keywords.slice().sort(function(a, b){ return b.weight - a.weight; });
+  }
+
+  function renderWordCloud(){
+    var canvas = $('wcCanvas');
+    var empty = $('wcEmpty');
+    if(!STATE.keywords.length){
+      canvas.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+    if(!window.WordCloud || !WordCloud.isSupported){
+      canvas.classList.add('hidden');
+      empty.textContent = '目前瀏覽器不支援文字雲繪製，請改用下方的關鍵字清單表格。';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    canvas.classList.remove('hidden');
+
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = 900, cssH = 540;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+
+    var textMap = {};
+    var list = sortedKeywords().map(function(k){
+      var text = displayText(k);
+      textMap[text] = k;
+      return [text, k.weight];
+    });
+
+    var minFont = 14 * dpr, maxFont = 88 * dpr;
+    WordCloud(canvas, {
+      list: list,
+      gridSize: Math.round(8 * dpr),
+      weightFactor: function(w){ return minFont + (w / 100) * (maxFont - minFont); },
+      fontFamily: 'Microsoft JhengHei, PingFang TC, Noto Sans TC, sans-serif',
+      color: function(word){
+        var k = textMap[word];
+        return (k && CATEGORY_META[k.category]) ? CATEGORY_META[k.category].color : CATEGORY_META.core.color;
+      },
+      backgroundColor: '#123640',
+      rotateRatio: 0.2,
+      rotationSteps: 2,
+      drawOutOfBound: false
+    });
+  }
+
+  function renderKeywordTable(){
+    var wrap = $('tableWrap');
+    if(!STATE.keywords.length){
+      wrap.innerHTML = '';
+      return;
+    }
+    var rows = sortedKeywords();
+    var head = '<table class="kw-table"><thead><tr><th>關鍵字（英）</th><th>關鍵字（中）</th><th>熱度</th><th>分類</th><th>說明</th></tr></thead><tbody>';
+    var body = rows.map(function(k){
+      var meta = CATEGORY_META[k.category];
+      return '<tr>'
+        + '<td>' + escapeHtml(k.keyword) + '</td>'
+        + '<td>' + escapeHtml(k.keyword_zh || '—') + '</td>'
+        + '<td><span class="weight-bar"><span style="width:' + k.weight + '%"></span></span>' + k.weight + '</td>'
+        + '<td><span class="cat-badge" style="background:' + meta.color + '22;color:' + meta.color + '"><span class="dot" style="width:7px;height:7px;border-radius:50%;background:' + meta.color + '"></span>' + meta.label + '</span></td>'
+        + '<td class="reason">' + escapeHtml(k.reason || '') + '</td>'
+        + '</tr>';
+    }).join('');
+    wrap.innerHTML = '<div class="table-wrap">' + head + body + '</tbody></table></div>';
+  }
+
+  /* ---------- 匯出 ---------- */
+  function triggerDownload(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function safeFileTag(){
+    return (STATE.fields.productName || '商品').replace(/[\\/:*?"<>|]/g, '').slice(0, 30) || '商品';
+  }
+  $('downloadPngBtn').addEventListener('click', function(){
+    if(!STATE.keywords.length){ notify('請先產生關鍵字文字雲'); return; }
+    var canvas = $('wcCanvas');
+    canvas.toBlob(function(blob){
+      if(!blob){ notify('圖片匯出失敗'); return; }
+      triggerDownload(blob, '關鍵字文字雲_' + safeFileTag() + '.png');
+    }, 'image/png');
+  });
+  function csvCell(v){
+    v = (v === undefined || v === null) ? '' : String(v);
+    if(/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  }
+  $('downloadCsvBtn').addEventListener('click', function(){
+    if(!STATE.keywords.length){ notify('請先產生關鍵字文字雲'); return; }
+    var rows = [['關鍵字(英)', '關鍵字(中)', '熱度', '分類', '說明']];
+    sortedKeywords().forEach(function(k){
+      rows.push([k.keyword, k.keyword_zh, k.weight, CATEGORY_META[k.category].label, k.reason]);
+    });
+    var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
+    triggerDownload(new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'}), '關鍵字清單_' + safeFileTag() + '.csv');
+  });
+  $('downloadTxtBtn').addEventListener('click', function(){
+    if(!STATE.keywords.length){ notify('請先產生關鍵字文字雲'); return; }
+    var text = sortedKeywords().map(displayText).join('\n');
+    triggerDownload(new Blob([text], {type:'text/plain;charset=utf-8;'}), '關鍵字清單_' + safeFileTag() + '.txt');
+  });
+  $('copyListBtn').addEventListener('click', function(){
+    if(!STATE.keywords.length){ notify('請先產生關鍵字文字雲'); return; }
+    var text = sortedKeywords().map(displayText).join(', ');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ notify('已複製關鍵字清單'); }).catch(function(){ notify('複製失敗，請手動選取'); });
+    } else {
+      notify('此瀏覽器不支援自動複製，請手動選取下載的清單');
+    }
+  });
+
+  /* ---------- 初始化 ---------- */
+  renderPresets();
+  renderFieldsFromState();
+  bindFieldInputs();
+  initAiPanel();
+  if(STATE.keywords.length) renderResult();
+
+  window.addEventListener('load', function(){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js').catch(function(){});
+    }
+  });
+})();
+</script>
+
+<script>
+/* ================= 頂部跑馬燈（獨立運作，共用工作區既有的公告 Google Sheet） ================= */
+(function () {
+  'use strict';
+  var MARQUEE_CHECK_URL = "https://script.google.com/macros/s/AKfycbwKX0DNNbY8y4nf90BFTHtxgfqJcHHcZasRrgycl4QAe52_hkjMWSkYk4xOsqU-JPCROw/exec";
+  var STORAGE_KEY = 'pkcMarquee';
+  var REFRESH_MS = 20 * 60 * 1000;
+
+  var bar = document.getElementById('marqueeBar');
+  var track = document.getElementById('marqueeTrack');
+  var lastKey = null;
+
+  function loadCache() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveCache(items) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+  }
+  function appendParsedText(container, text) {
+    var re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    var lastIndex = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > lastIndex) container.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var a = document.createElement('a');
+      a.href = m[2];
+      a.textContent = m[1];
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.style.color = 'inherit';
+      a.style.textDecoration = 'underline';
+      container.appendChild(a);
+      lastIndex = re.lastIndex;
+    }
+    if (lastIndex < text.length) container.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  function buildTrackContent(items) {
+    var frag = document.createDocumentFragment();
+    function appendPass() {
+      items.forEach(function (item, idx) {
+        if (idx > 0) frag.appendChild(document.createTextNode('　★　'));
+        appendParsedText(frag, item);
+      });
+    }
+    appendPass();
+    frag.appendChild(document.createTextNode('　★　'));
+    appendPass();
+    return frag;
+  }
+  function render(items) {
+    if (!items || !items.length) return;
+    var key = JSON.stringify(items);
+    if (key === lastKey) return;
+    lastKey = key;
+    track.innerHTML = '';
+    track.appendChild(buildTrackContent(items));
+    bar.classList.add('show');
+    document.body.classList.add('has-marquee');
+    var width = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(width / 80, 10) + 's';
+  }
+  function fetchMarquee() {
+    fetch(MARQUEE_CHECK_URL, { method: 'POST', body: JSON.stringify({ serial: '' }) })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && Array.isArray(data.marquee) && data.marquee.length) {
+          saveCache(data.marquee);
+          render(data.marquee);
+        }
+      })
+      .catch(function () {});
+  }
+
+  render(loadCache());
+  fetchMarquee();
+  setInterval(fetchMarquee, REFRESH_MS);
+})();
+
+/* ================= PWA 加入主畫面（獨立運作） ================= */
+(function () {
+  'use strict';
+  var deferredPrompt = null;
+  var btn = document.getElementById('installBtn');
+
+  var ua = navigator.userAgent || '';
+  var isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isMacDesktop = /Macintosh/.test(ua) && !isIOSDevice;
+  var isSafariEngine = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(ua);
+  var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+  function fallbackMessage() {
+    if (isIOSDevice) return '請點畫面上的「分享」圖示，選「加入主畫面」';
+    if (isMacDesktop && isSafariEngine) return '請用選單列「檔案」→「加入 Dock」（Safari 17 以上）';
+    return '目前瀏覽器不支援安裝，或已安裝過';
+  }
+
+  function notify(msg) {
+    var t = document.getElementById('toast');
+    if (!t) { window.alert(msg); return; }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(notify._timer);
+    notify._timer = setTimeout(function () { t.classList.remove('show'); }, 2400);
+  }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+  window.addEventListener('appinstalled', function () {
+    deferredPrompt = null;
+  });
+
+  if (btn) {
+    if (isStandalone) {
+      btn.style.display = 'none';
+    } else {
+      btn.addEventListener('click', function () {
+        if (!deferredPrompt) {
+          notify(fallbackMessage());
+          return;
+        }
+        try {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+        } catch (e) {
+          notify(fallbackMessage());
+        }
+      });
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
