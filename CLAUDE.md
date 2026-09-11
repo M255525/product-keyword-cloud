@@ -49,9 +49,16 @@ canvas 渲染驗證：`getImageData()` 抽樣比對背景色（`#123640`→`rgb(
 - **⚠️ 尚待使用者完成一次性 OAuth 授權**：部署後尚未經過首次同意流程（用 `curl -sL` 打 `/exec` 網址回傳的是 Google Drive「需要存取權」頁面而非 JSON），前端 `licenseGate` 目前會顯示「無法連線授權伺服器」（已用 Playwright/claude-in-chrome 實測確認 fail-closed 行為正確——不是放行，是明確擋下並顯示原因）。需使用者親自用瀏覽器（登入 tsaimark@gmail.com）開啟上面的 Apps Script 編輯器並執行一次 `doGet` 完成同意畫面，之後才能正式驗證序號；同意完成後，「文字雲」分頁應該會自動出現（含表頭），屆時需在該分頁新增至少一列測試序號（序號欄填值，開始/結束日期留空）才能做端對端驗證。
 - 這支後端只做序號驗證，不代理任何付費 API（LLM 串接仍是 BYOK），也不處理跑馬燈（跑馬燈內容抓自工作區既有共用授權伺服器，是另一個不相干的系統）。
 
+## 部署
+
+已推公開 GitHub repo `M255525/product-keyword-cloud`，用 `.github/workflows/deploy-pages.yml`（比照 `text-organizer-studio` 逐字複製）以 Actions workflow 部署 GitHub Pages（非 legacy branch-source，`gh api repos/M255525/product-keyword-cloud/pages -f build_type=workflow` 開啟），2026-09-11 已上線：<https://m255525.github.io/product-keyword-cloud/>（已用瀏覽器實測確認頁面正常渲染、`#licenseGate` 正確鎖定）。
+
+## 序號授權後端狀態（2026-09-11 更新）
+
+一次性 OAuth 授權已由使用者完成：`doGet`/`doPost` 皆已用 `curl -sL`／Node `fetch()` 驗證回傳正確 JSON（非 Google 的「需要存取權」頁面），「文字雲」分頁已自動建立（含表頭）。用假序號測試 `doPost` 正確回傳 `{"valid":false,"reason":"serial_not_found"}`，證明表頭比對與分頁建立邏輯正常。**尚待**：使用者在「文字雲」分頁新增至少一組真實測試序號，才能驗證「有效序號解鎖＋剩餘天數顯示」這條路徑。
+
 ## 本次未做（後續視需要再處理）
 
 - 桌面版 exe 未打包。
-- 是否推公開 GitHub Pages 部署，依工作區「實驗性新工具部署前先確認」慣例，本次未執行，留待使用者確認。
-- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，真實金鑰測試留給使用者自行操作，目前卡在序號授權閘門需先完成 OAuth 授權才能進入工具本體）。
-- 序號授權後端的一次性 OAuth 授權尚未完成，「文字雲」分頁尚未實際建立、尚無可測試的真實序號。
+- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，目前卡在序號授權閘門需先有一組真實測試序號才能進入工具本體）。
+- 序號授權「有效序號」路徑尚未端對端驗證（見上）。
