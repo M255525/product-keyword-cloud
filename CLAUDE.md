@@ -40,9 +40,18 @@ canvas 渲染驗證：`getImageData()` 抽樣比對背景色（`#123640`→`rgb(
 
 **8815**（工作區 8765-8814 已全數占用，本專案是目前最新的空號，已登記進 `.claude/launch.json`）。
 
+## 序號授權（鎖定整個工具，12 個月，2026-09-11 新增，取代原本「不套用序號授權」的決定）
+
+使用者第一版明確要求不加序號授權，但後續改變主意要求加上，比照 `traffic-rank-estimator`／`amazon-listing-generator` 的「鎖整個工具、全螢幕遮罩」模式（非 `member-license-gate` skill 資源檔預設的「僅鎖單一功能的 license-bar」樣式——這個工具核心價值就是單一個 AI 生成動作，沒有值得留白的獨立免費功能，鎖整個工具更貼合實際使用情境）：`#licenseGate` 全螢幕遮罩預設鎖定，驗證通過才加 `.hidden`；載入時一律對後端即時重驗，背景每 20 分鐘重驗一次；`localStorage` key：`pkcLicenseSerial`；剩餘天數徽章 `#licenseBadge` 放在 `.topbar nav` 內。
+
+- **綁定的 Google Sheet**：使用者指定的新試算表「跨境電商工具」（<https://docs.google.com/spreadsheets/d/1sUrMVQ7T3_JOG_vMY1peGWxxxbw8PTxbbXBhj2IPM6s/edit>），固定操作獨立分頁「文字雲」（`SHEET_NAME` 常數）——與同一試算表內「工作表1」（該表既有的任務追蹤/測試序號，跟本工具無關）互不干擾。分頁不存在時 `getLicenseSheet_()` 會在第一次真正執行 `doPost`/`doGet` 時自動 `insertSheet()` 並寫入表頭（序號／開始日期／結束日期）。
+- **部署方式**：`clasp create --parentId <SheetID>`（不加 `--type`，且 `clasp create` 會把 `appsscript.json` 重置成預設內容，記得推送前手動改回 `timeZone:"Asia/Taipei"` + `webapp:{executeAs:"USER_DEPLOYING",access:"ANYONE_ANONYMOUS"}`）→ 複製 `Code.gs` → `clasp push --force` → `clasp deploy`，全程在 `.gas-deploy/`（已加入 `.gitignore`，不進版控）內操作，一次成功、未卡複製貼上壞掉的坑。已部署：`LICENSE_CHECK_URL = https://script.google.com/macros/s/AKfycbygIVBDSwx9rnuRyTQe4by7W3f6dMJCjTjMPaLEkkWozMIyFYEOyhRPTQThxYVF75Nf/exec`，Apps Script 編輯器：<https://script.google.com/d/1RR_VbeizI8s5v3drmU95hg4WsFzr0UXVNJuyhFeuOCB0mVxrg9YMuc4U/edit>。
+- **⚠️ 尚待使用者完成一次性 OAuth 授權**：部署後尚未經過首次同意流程（用 `curl -sL` 打 `/exec` 網址回傳的是 Google Drive「需要存取權」頁面而非 JSON），前端 `licenseGate` 目前會顯示「無法連線授權伺服器」（已用 Playwright/claude-in-chrome 實測確認 fail-closed 行為正確——不是放行，是明確擋下並顯示原因）。需使用者親自用瀏覽器（登入 tsaimark@gmail.com）開啟上面的 Apps Script 編輯器並執行一次 `doGet` 完成同意畫面，之後才能正式驗證序號；同意完成後，「文字雲」分頁應該會自動出現（含表頭），屆時需在該分頁新增至少一列測試序號（序號欄填值，開始/結束日期留空）才能做端對端驗證。
+- 這支後端只做序號驗證，不代理任何付費 API（LLM 串接仍是 BYOK），也不處理跑馬燈（跑馬燈內容抓自工作區既有共用授權伺服器，是另一個不相干的系統）。
+
 ## 本次未做（後續視需要再處理）
 
 - 桌面版 exe 未打包。
-- 序號授權（使用者本次明確要求不加；若之後要鎖工具，比照姊妹專案「鎖整個工具 12 個月」模式加回）。
 - 是否推公開 GitHub Pages 部署，依工作區「實驗性新工具部署前先確認」慣例，本次未執行，留待使用者確認。
-- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，真實金鑰測試留給使用者自行操作）。
+- 未實測真實 AI 金鑰的端對端呼叫（金鑰驗證邏輯與 UI 骨架已用假回應測過，真實金鑰測試留給使用者自行操作，目前卡在序號授權閘門需先完成 OAuth 授權才能進入工具本體）。
+- 序號授權後端的一次性 OAuth 授權尚未完成，「文字雲」分頁尚未實際建立、尚無可測試的真實序號。

@@ -8,3 +8,6 @@ _check.js
 .playwright-mcp/
 .DS_Store
 Thumbs.db
+
+# clasp 部署暫存（含 .clasp.json 但不含機密，仍不進版控，比照工作區既有慣例）
+.gas-deploy/
