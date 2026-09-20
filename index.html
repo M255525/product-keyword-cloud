@@ -225,6 +225,22 @@
         <label>賣點／特色說明（選填，可換行列點）</label>
         <textarea id="f_sellingPoints" placeholder="例如：&#10;IPX6防水&#10;磁吸底座可吸附車頂或鐵架&#10;三段亮度＋SOS閃爍模式"></textarea>
       </div>
+      <div class="field">
+        <label>姓名（選填，用於下載練習證明）</label>
+        <input type="text" id="idName" maxlength="40" placeholder="例如：王小明">
+      </div>
+      <div class="field">
+        <label>學號（選填）</label>
+        <input type="text" id="idStudentId" maxlength="30" placeholder="選填">
+      </div>
+      <div class="field">
+        <label>系所（選填）</label>
+        <input type="text" id="idDept" maxlength="40" placeholder="選填">
+      </div>
+      <div class="field">
+        <label>組別（選填）</label>
+        <input type="text" id="idGroup" maxlength="30" placeholder="選填">
+      </div>
     </div>
   </div>
 
@@ -281,6 +297,7 @@
         <button type="button" class="btn btn-ghost" id="downloadCsvBtn">📄 下載 CSV</button>
         <button type="button" class="btn btn-ghost" id="downloadTxtBtn">📝 下載 TXT 清單</button>
         <button type="button" class="btn btn-ghost" id="copyListBtn">📋 複製關鍵字清單</button>
+        <button type="button" class="btn btn-ghost" id="downloadCertBtn">🎓 下載練習證明（圖檔）</button>
       </div>
 
       <div class="table-wrap" id="tableWrap"></div>
@@ -292,7 +309,7 @@
   <ul class="warn-list">
     <li>本工具無任何離線／免金鑰模式：所有關鍵字皆需連線到你自己選擇的 AI 服務商，金鑰只存在你的瀏覽器 localStorage，本工具不會經手或保存。</li>
     <li>文字雲的字體大小、熱度分數皆為 AI 依訓練知識產生的主觀估計，不是任何官方或第三方搜尋引擎的真實搜尋量數據，不保證準確或即時，僅供行銷發想參考，請勿作為商業決策唯一依據。</li>
-    <li>請勿輸入真實個資、機密資料或受著作權保護的他人內容。</li>
+    <li>請勿輸入真實個資、機密資料或受著作權保護的他人內容；「姓名／學號／系所／組別」為選填欄位，僅用於你自行下載的練習證明圖檔，同樣只存在你的瀏覽器本機。</li>
     <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用。</li>
   </ul>
   <div class="footer-meta">
@@ -764,6 +781,96 @@
       notify('此瀏覽器不支援自動複製，請手動選取下載的清單');
     }
   });
+
+  /* ---------- 身分資料與練習證明（PNG 圖檔，Canvas 繪製） ---------- */
+  var IDENTITY_KEY = 'pkcIdentity';
+  function loadIdentity(){
+    try{ return JSON.parse(localStorage.getItem(IDENTITY_KEY) || '{}'); }catch(e){ return {}; }
+  }
+  function saveIdentity(){
+    var d = { name: $('idName').value, studentId: $('idStudentId').value, dept: $('idDept').value, group: $('idGroup').value };
+    try{ localStorage.setItem(IDENTITY_KEY, JSON.stringify(d)); }catch(e){}
+  }
+  function restoreIdentity(){
+    var d = loadIdentity();
+    $('idName').value = d.name || ''; $('idStudentId').value = d.studentId || '';
+    $('idDept').value = d.dept || ''; $('idGroup').value = d.group || '';
+  }
+  function wrapCanvasText(ctx, text, maxWidth){
+    var lines = [], line = '';
+    for(var i = 0; i < text.length; i++){
+      var test = line + text[i];
+      if(ctx.measureText(test).width > maxWidth && line){ lines.push(line); line = text[i]; }
+      else line = test;
+    }
+    if(line) lines.push(line);
+    return lines;
+  }
+  function downloadPracticeCertificate(){
+    if(!STATE.keywords.length){ notify('請先產生關鍵字文字雲'); return; }
+    var name = $('idName').value.trim(), sid = $('idStudentId').value.trim();
+    var dept = $('idDept').value.trim(), group = $('idGroup').value.trim();
+    var d = new Date();
+    var dateStr = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+
+    var W = 1000, H = 700;
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#07161a'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 3; ctx.strokeRect(24, 24, W-48, H-48);
+    ctx.strokeStyle = 'rgba(45,212,191,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(34, 34, W-68, H-68);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#2dd4bf';
+    ctx.font = 'bold 20px "Microsoft JhengHei", sans-serif';
+    ctx.fillText('PRACTICE CERTIFICATE', W/2, 90);
+    ctx.fillStyle = '#eaf6f5';
+    ctx.font = 'bold 32px "Microsoft JhengHei", sans-serif';
+    ctx.fillText('練習證明', W/2, 138);
+    ctx.font = '17px "Microsoft JhengHei", sans-serif';
+    ctx.fillStyle = '#8fb5b0';
+    ctx.fillText('跨境電商關鍵字文字雲產生器', W/2, 170);
+
+    ctx.strokeStyle = 'rgba(45,212,191,0.4)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(120, 196); ctx.lineTo(W-120, 196); ctx.stroke();
+
+    var y = 246, lineH = 40;
+    ctx.font = '20px "Microsoft JhengHei", sans-serif';
+    function row(label, value){
+      ctx.textAlign = 'right'; ctx.fillStyle = '#5f8a85';
+      ctx.fillText(label, W/2 - 16, y);
+      ctx.textAlign = 'left'; ctx.fillStyle = '#eaf6f5';
+      ctx.fillText(value || '（未填寫）', W/2, y);
+      y += lineH;
+    }
+    row('姓名：', name); row('學號：', sid); row('系所：', dept); row('組別：', group);
+
+    y += 14;
+    ctx.textAlign = 'center';
+    ctx.font = '16px "Microsoft JhengHei", sans-serif';
+    ctx.fillStyle = '#8fb5b0';
+    var product = STATE.fields.productName || '未命名商品';
+    var summary = '已完成「' + product + '」共 ' + STATE.keywords.length + ' 組跨境電商關鍵字文字雲練習';
+    wrapCanvasText(ctx, summary, W-200).forEach(function(ln){ ctx.fillText(ln, W/2, y); y += 26; });
+    y += 8;
+    ctx.fillText('產出日期：' + dateStr, W/2, y);
+
+    ctx.font = '12px "Microsoft JhengHei", sans-serif';
+    ctx.fillStyle = '#5a736f';
+    ctx.fillText('本證明由使用者自行下載，僅供課程練習存證使用，非官方發行文件', W/2, H-50);
+    ctx.fillText('跨境電商關鍵字文字雲產生器 · Mark Tsai', W/2, H-30);
+
+    canvas.toBlob(function(blob){
+      triggerDownload(blob, '練習證明_' + (name || '未填寫姓名') + '_' + safeFileTag() + '.png');
+    });
+  }
+  ['idName','idStudentId','idDept','idGroup'].forEach(function(id){
+    $(id).addEventListener('input', saveIdentity);
+  });
+  $('downloadCertBtn').addEventListener('click', downloadPracticeCertificate);
+  restoreIdentity();
 
   /* ---------- 初始化 ---------- */
   renderPresets();
