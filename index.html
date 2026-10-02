@@ -47,6 +47,7 @@
   #marqueeBar{position:fixed;top:0;left:0;right:0;height:30px;background:var(--panel);border-bottom:1px solid var(--line);z-index:2100;overflow:hidden;display:none;align-items:center}
   #marqueeBar.show{display:flex}
   #marqueeTrack{white-space:nowrap;display:inline-block;padding-left:100%;animation:marquee-scroll 30s linear infinite;font-size:13px;color:var(--text-dim);}
+  #marqueeBar:hover #marqueeTrack{animation-play-state:paused}
   @keyframes marquee-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   body.has-marquee .topbar{top:30px;}
   body.has-marquee{padding-top:30px;}
